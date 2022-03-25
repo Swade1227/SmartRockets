@@ -1,23 +1,29 @@
-var population;
+//population object
+var population; 
+//each rocket lasts 400 frames
 var lifespan = 400;
-var lifeP;
+//framecount
 var count = 0;
+//display count
+var lifeP;
+//rocket target
 var target;
+//rocket maxforce
 var maxforce = 0.2;
 
+//rectangle obstacle
 var rx = 150;
 var ry = 150;
 var rw = 100;
 var rh = 10;
 
-
-function setup() {
+//target, population, and framerate
   createCanvas(400,300);
   population = new Population();
   lifeP = createP();
   target = createVector(width/2, 50);
 }
-
+//run(), when finished it scores the rockets (evaluate), then "repopulates" (selection)
 function draw() {
   background(0);
   population.run();
@@ -35,30 +41,40 @@ function draw() {
   ellipse(target.x, target.y, 16, 16);
 }
 
-// ------------- Start Pop ----------------------------------- //
+// ------------- Start Populatiom ----------------------------------- //
 
 function Population() {
+  //array of rockets
   this.rockets = [];
+  //population size
   this.popsize = 25;
+  //empty mating pool
   this.matingpool = [];
   
+  //initializes rockets
   for (var i = 0;i < this.popsize; i++) {
     this.rockets[i] = new Rocket(); 
   }
   
+  //scores rockets fitness
   this.evaluate = function() {
     var maxfit = 0;
     for (var i = 0; i < this.popsize; i++) {
       this.rockets[i].calcFitness();
+      //if rocket scores higher than maxfitness, increae maxfitness
       if (this.rockets[i].fitness > maxfit) {
         maxfit = this.rockets[i].fitness;
       }
     }
     
+    //normalize scores
     for (var i = 0; i < this.popsize; i++) {
       this.rockets[i].fitness /= maxfit;
     }
     
+    //1 to 100 scale
+    //pushes rocket dna into mating pool, higher fitness scores dna get put into the mating pool more often
+    //(score of 3 gets 3 entries, 20 gets 20, etc)
     this.matingpool = [];
     for (var i = 0; i < this.popsize; i++) {
       var n = this.rockets[i].fitness * 100;
@@ -68,18 +84,24 @@ function Population() {
     }
   }
   
+  //natural selection
   this.selection = function() {
+    //new rocket array
     var newRockets = [];
     for (var i = 0; i < this.rockets.length; i++) {
     var parentA = random(this.matingpool).dna;
     var parentB = random(this.matingpool).dna;
+    //mixes parent DNA into child rocket
     var child = parentA.crossover(parentB);
+    //possible mutation 
     child.mutation();
+    //creates new child Rocket
     newRockets[i] = new Rocket(child);
    }  
     this.rockets = newRockets;
  }
   
+  //updates rockets motion and displays position
   this.run = function() {
     for (var i = 0; i < this.popsize; i++) {
       this.rockets[i].update();
@@ -92,6 +114,7 @@ function Population() {
 
 // ------------- Start DNA ----------------------------------- //
 
+//rocket "DNA" made of random vectors and sets max force of the rocket
 function DNA(genes) {
   if (genes) {
     this.genes = genes;
@@ -103,20 +126,25 @@ function DNA(genes) {
     }
   }
   
-  
+  //crossover of DNA
   this.crossover = function(partner) {
     var newgenes = [];
+    // Picks random midpoint
     var mid = floor(random(this.genes.length));
     for (var i = 0; i < this.genes.length; i++) {
+      // If 'i' is bigger than mid then new gene comes from that partner
       if (i > mid) {
         newgenes[i] = this.genes[i];
+        //vice versa
       } else {
         newgenes[i] = partner.genes[i];
       }
     }
+    //new DNA object the array of "genes/vectors"
     return new DNA(newgenes);
   }
   
+  //if random number less than 0.01 then mutate a random vector
   this.mutation = function() {
     for (var i = 0; i < this.genes.length; i++) {
       if (random(1) < 0.01) {
@@ -131,13 +159,18 @@ function DNA(genes) {
 
 // ------------- Start Rocket --------------------------//
 
+//create rocket object
 function Rocket(dna) {
+  //simple 2d physics (pos/vel/acc)
   this.pos = createVector(width/2, height);
   this.vel = createVector();
   this.acc = createVector();
+  //after lifespan ends
   this.completed = false;
+  //if rocket crashes
   this.crashed = false;
   
+  //gives rocket "DNA"
   if (dna) {
     this.dna = dna;
   } else {
@@ -145,10 +178,12 @@ function Rocket(dna) {
   }
   this.fitness = 0;
  
+  //applies vector DNA
   this.applyForce = function(force) {
     this.acc.add(force);
   }
-  
+ 
+// calculates end distance from target, and modifies it accordingly
 this.calcFitness = function() {
   var d = dist(this.pos.x, this.pos.y, target.x, target.y);
   this.fitness = map(d, 0, width, width, 0);
@@ -161,6 +196,7 @@ this.calcFitness = function() {
   }
 }
 
+//updates rockets position and motion
 this.update = function() {
   
   var d = dist(this.pos.x, this.pos.y, target.x, target.y);
@@ -193,6 +229,7 @@ this.update = function() {
   }
 }
 
+//displays rocket on screen
 this.show = function() {
   push();
   noStroke();
