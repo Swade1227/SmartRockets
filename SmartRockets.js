@@ -10,17 +10,24 @@ var lifeP;
 var target;
 //rocket maxforce
 var maxforce = 0.2;
+//current highscore
+var maxDist;
+//end message
+var gameEnd;
 
 //rectangle obstacle
-var rx = 150;
+var rx = 160;
 var ry = 150;
-var rw = 100;
+var rw = 80;
 var rh = 10;
 
+function setup() {
 //target, population, and framerate
   createCanvas(400,300);
   population = new Population();
   lifeP = createP();
+  maxDist = createP();
+  gameEnd = createP();
   target = createVector(width/2, 50);
 }
 //run(), when finished it scores the rockets (evaluate), then "repopulates" (selection)
@@ -41,7 +48,25 @@ function draw() {
   ellipse(target.x, target.y, 16, 16);
 }
 
-// ------------- Start Populatiom ----------------------------------- //
+// ------------- Start Text stuff ----------------------------------- //
+
+this.endgame = function() {
+  gameEnd.html("Target Reached, Game Over!")
+  exitGame();
+}
+
+this.exitGame = function() {
+  exit();
+}
+
+this.displayCon = function(maxfit) {
+  if (maxfit > 3999) {
+    endgame();
+  }
+  maxDist.html("High Score: " + floor(maxfit));
+}
+
+// ------------- Start Population ----------------------------------- //
 
 function Population() {
   //array of rockets
@@ -64,12 +89,14 @@ function Population() {
       //if rocket scores higher than maxfitness, increae maxfitness
       if (this.rockets[i].fitness > maxfit) {
         maxfit = this.rockets[i].fitness;
+        
       }
     }
     
     //normalize scores
     for (var i = 0; i < this.popsize; i++) {
       this.rockets[i].fitness /= maxfit;
+      displayCon(maxfit);
     }
     
     //1 to 100 scale
