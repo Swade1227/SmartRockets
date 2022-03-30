@@ -43,7 +43,7 @@ function setup() {
   mut = createP();
   roundCountText = createP();
   target = createVector(width/2, 50);
-  slider = createSlider(0, 255, 0, 5);
+  slider = createSlider(0, 0.1, 0, 0.01);
   slider.position(displayWidth-140, 150);
   slider.style('width', '80px');
   
@@ -58,10 +58,10 @@ function draw() {
   lifeP.style('color', '#00FFFF');
   lifeP.position(displayWidth-150, 0);
 
-  let val = map(slider.value(), 0, 255, 0, 1);
-  mutTrack = round(val, 3);
+  let val = slider.value();
+  mutTrack = round(val * 100);
 
-  mut.html("Mutation Chance: " + mutTrack);
+  mut.html("Mutation Chance: " + mutTrack + "%");
   mut.style('font-size', '16px');
   mut.style('color', '#00FFFF');
   mut.position(displayWidth-160, 100);
@@ -220,7 +220,7 @@ class DNA {
 
     //if random number less than 0.01 then mutate a random vector
     this.mutation = function () {
-      let val = map(slider.value(), 0, 255, 0, 1);
+      let val = slider.value();
       console.log(val);
       for (var i = 0; i < this.genes.length; i++) {
         if (random(1) < val) {
