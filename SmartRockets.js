@@ -23,6 +23,9 @@ let randomY = [];
 
 let numPts = 25;
 
+let slider;
+
+var mut;
 
 //rectangle obstacle
 var rx = 575;
@@ -37,12 +40,17 @@ function setup() {
   lifeP = createP();
   maxDist = createP();
   gameEnd = createP();
+  mut = createP();
   roundCountText = createP();
   target = createVector(width/2, 50);
-
+  slider = createSlider(0, 255, 0, 5);
+  slider.position(displayWidth-140, 150);
+  slider.style('width', '80px');
+  
 }
 //run(), when finished it scores the rockets (evaluate), then "repopulates" (selection)
 function draw() {
+  
   background(0);
   population.run();
   lifeP.html("Frame Count: " + count);
@@ -50,6 +58,13 @@ function draw() {
   lifeP.style('color', '#00FFFF');
   lifeP.position(displayWidth-150, 0);
 
+  let val = map(slider.value(), 0, 255, 0, 1);
+  mutTrack = round(val, 3);
+
+  mut.html("Mutation Chance: " + mutTrack);
+  mut.style('font-size', '16px');
+  mut.style('color', '#00FFFF');
+  mut.position(displayWidth-160, 100);
 
   roundCountText.html("Generation : " + roundCount);
   roundCountText.style('font-size', '16px');
@@ -62,6 +77,7 @@ function draw() {
     population.selection();
     count = 0;
     roundCount++;
+    
   }
   
   fill(255);
@@ -70,6 +86,8 @@ function draw() {
 }
 
 // ------------- Start Text stuff ----------------------------------- //
+
+
 
 this.endgame = function() {
   gameEnd.style('font-size', '64px');
@@ -202,8 +220,10 @@ class DNA {
 
     //if random number less than 0.01 then mutate a random vector
     this.mutation = function () {
+      let val = map(slider.value(), 0, 255, 0, 1);
+      console.log(val);
       for (var i = 0; i < this.genes.length; i++) {
-        if (random(1) < 0.01) {
+        if (random(1) < val) {
           this.genes[i] = p5.Vector.random2D();
           this.genes[i].setMag(maxforce);
         }
