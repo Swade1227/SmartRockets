@@ -25,10 +25,17 @@ let numPts = 25;
 
 let slider;
 
-var mut;
+let moveSliderX;
+
+let moveSliderY;
+
+var rectoY;
+
+var rectoX;
+
 
 //rectangle obstacle
-var rx = 575;
+var rx = 0;
 var ry = 400;
 var rw = 300;
 var rh = 10;
@@ -41,12 +48,21 @@ function setup() {
   maxDist = createP();
   gameEnd = createP();
   mut = createP();
+  rectoX = createP();
+  rectoY = createP(); 
   roundCountText = createP();
   target = createVector(width/2, 50);
   slider = createSlider(0, 0.1, 0, 0.01);
   slider.position(displayWidth-140, 150);
   slider.style('width', '80px');
   
+  moveSliderX = createSlider(0, displayWidth - rw, 0, 10);
+  moveSliderX.position(40, 50);
+  moveSliderX.style('width', '80px');
+
+  moveSliderY = createSlider(0, displayHeight -81, 0, 10);
+  moveSliderY.position(40, 125);
+  moveSliderY.style('width', '80px');
 }
 //run(), when finished it scores the rockets (evaluate), then "repopulates" (selection)
 function draw() {
@@ -66,7 +82,17 @@ function draw() {
   mut.style('color', '#00FFFF');
   mut.position(displayWidth-160, 100);
 
-  roundCountText.html("Generation : " + roundCount);
+  rectoX.html("Barrier X Control");
+  rectoX.style('font-size', '16px');
+  rectoX.style('color', '#00FFFF');
+  rectoX.position(35, 0);
+
+  rectoY.html("Barrier Y Control");
+  rectoY.style('font-size', '16px');
+  rectoY.style('color', '#00FFFF');
+  rectoY.position(35, 75);
+
+  roundCountText.html("Generation: " + roundCount);
   roundCountText.style('font-size', '16px');
   roundCountText.style('color', '#00FFFF');
   roundCountText.position(displayWidth-150, 25);
@@ -80,8 +106,9 @@ function draw() {
     
   }
   
+  fill(0,128,255);
+  rect(moveSliderX.value(), moveSliderY.value(), rw, rh);
   fill(255);
-  rect(rx, ry, rw, rh);
   ellipse(target.x, target.y, 25, 25);
 }
 
@@ -190,6 +217,7 @@ class Population {
 //rocket "DNA" made of random vectors and sets max force of the rocket
 class DNA {
   constructor(genes) {
+    this.mutationOccured = false;
     if (genes) {
       this.genes = genes;
     } else {
@@ -198,6 +226,10 @@ class DNA {
         this.genes[i] = p5.Vector.random2D();
         this.genes[i].setMag(maxforce);
       }
+    }
+
+    this.mutated = function() {
+      return this.mutationOccured;
     }
 
     //crossover of DNA
@@ -218,12 +250,13 @@ class DNA {
       return new DNA(newgenes);
     };
 
+    
     //if random number less than 0.01 then mutate a random vector
     this.mutation = function () {
       let val = slider.value();
-      console.log(val);
+      let count = 0;
       for (var i = 0; i < this.genes.length; i++) {
-        if (random(1) < val) {
+        if (random() < val) {
           this.genes[i] = p5.Vector.random2D();
           this.genes[i].setMag(maxforce);
         }
@@ -247,10 +280,11 @@ class Rocket {
     this.completed = false;
     //if rocket crashes
     this.crashed = false;
-
+    
     //gives rocket "DNA"
     if (dna) {
       this.dna = dna;
+      
     } else {
       this.dna = new DNA();
     }
@@ -284,7 +318,7 @@ class Rocket {
         this.pos = target.copy();
       }
 
-      if (this.pos.x > rx && this.pos.x < rx + rw && this.pos.y > ry && this.pos.y < ry + rh) {
+      if (this.pos.x > moveSliderX.value() && this.pos.x < moveSliderX.value() + rw && this.pos.y > moveSliderY.value() && this.pos.y < moveSliderY.value() + rh) {
         this.crashed = true;
       }
 
@@ -309,9 +343,10 @@ class Rocket {
 
     //displays rocket on screen
     this.show = function () {
+      let val2 = slider.value();
       push();
       noStroke();
-      fill(255, 150);
+      fill(204, 255,255);
       translate(this.pos.x, this.pos.y);
       rotate(this.vel.heading());
       rectMode(CENTER);
